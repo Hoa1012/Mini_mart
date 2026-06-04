@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<!-- ========== NAVBAR FRAGMENT ========== -->
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark sticky-top" id="mainNav">
+  <div class="container">
+    <!-- Logo -->
+    <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/}">
+      <i class="fas fa-gem"></i>
+      <span>LuxeJewel</span>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" th:href="@{/}">Trang Chủ</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/shop}">Trang Sức</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Danh Mục</a>
+          <ul class="dropdown-menu">
+            <li th:each="cat : ${globalCategories}">
+              <a class="dropdown-item" th:href="@{/shop(categoryId=${cat.id})}">
+                <i th:class="${cat.name == 'Nhẫn'} ? 'fas fa-ring me-2' : 
+                            (${cat.name == 'Dây Chuyền'} ? 'fas fa-link me-2' : 
+                            (${cat.name == 'Bông Tai'} ? 'fas fa-gem me-2' : 
+                            (${cat.name == 'Vòng Tay'} ? 'fas fa-circle me-2' : 
+                            (${cat.name == 'Lắc Chân'} ? 'fas fa-ankh me-2' : 'fas fa-gem me-2'))))"></i>
+                <span th:text="${cat.name}"></span>
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+
+      <!-- Search -->
+      <form class="d-flex me-3" th:action="@{/shop}" method="get">
+        <div class="input-group">
+          <input class="form-control search-input" type="search" name="keyword" placeholder="Tìm trang sức...">
+          <button class="btn btn-gold" type="submit"><i class="fas fa-search"></i></button>
+        </div>
+      </form>
+
+      <!-- Cart + User -->
+      <ul class="navbar-nav align-items-center gap-2">
+        <!-- Admin Button - nổi bật riêng -->
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+          <a class="btn btn-sm px-3 py-1 fw-bold" th:href="@{/admin/dashboard}"
+             style="background: linear-gradient(135deg, #c9a96e, #a8813e); color: #fff; border-radius: 20px; font-size: 0.82rem;">
+            <i class="fas fa-shield-alt me-1"></i>Quản Trị
+          </a>
+        </li>
+
+        <li class="nav-item" sec:authorize="isAuthenticated()">
+          <a class="nav-link position-relative" th:href="@{/cart}">
+            <i class="fas fa-shopping-bag fs-5"></i>
+            <span class="cart-badge" id="cartBadge">0</span>
+          </a>
+        </li>
+
+        <!-- Guest -->
+        <li class="nav-item" sec:authorize="isAnonymous()">
+          <a class="btn btn-outline-gold btn-sm" th:href="@{/login}">Đăng Nhập</a>
+        </li>
+
+        <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+          <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-user-circle fs-5"></i>
+            <span sec:authentication="name"></span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li><a class="dropdown-item" th:href="@{/user/profile}"><i class="fas fa-user me-2"></i>Tài Khoản</a></li>
+            <li><a class="dropdown-item" th:href="@{/user/orders}"><i class="fas fa-box me-2"></i>Đơn Hàng</a></li>
+            <li sec:authorize="hasRole('ADMIN')">
+              <a class="dropdown-item text-danger" th:href="@{/admin/dashboard}">
+                <i class="fas fa-cog me-2"></i>Quản Trị
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form th:action="@{/logout}" method="post">
+                <button class="dropdown-item text-danger" type="submit" style="width: 100%; text-align: left;">
+                  <i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Global Toast Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 9999;"></div>
+
+  <script th:inline="javascript">
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof showToast === 'function') {
+      var successMsg = /*[[${success}]]*/ null;
+      var errorMsg = /*[[${error}]]*/ null;
+      var isParamError = /*[[${param.error != null}]]*/ false;
+      var isParamLogout = /*[[${param.logout != null}]]*/ false;
+
+      if (successMsg) {
+        showToast(successMsg, 'success');
+      }
+      if (errorMsg) {
+        showToast(errorMsg, 'danger');
+      }
+      if (isParamError) {
+        showToast('Tên đăng nhập hoặc mật khẩu không chính xác!', 'danger');
+      }
+      if (isParamLogout) {
+        showToast('Bạn đã đăng xuất thành công!', 'success');
+      }
+    }
+  });
+  </script>
+</nav>
+
+<!-- Announcement bar -->
+<div class="announcement-bar text-center py-2 d-none d-md-block">
+  <small><i class="fas fa-truck me-1"></i>Miễn phí vận chuyển đơn trên 2 triệu &nbsp;|&nbsp;
+    <i class="fas fa-shield-alt me-1"></i>Cam kết chính hãng 100% &nbsp;|&nbsp;
+    <i class="fas fa-undo me-1"></i>Đổi trả trong 30 ngày</small>
+</div>
+</body>
+</html>

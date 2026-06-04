@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - LuxeJewel Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link th:href="@{/css/admin.css}" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="admin-body">
+<div th:replace="~{fragments/admin-sidebar :: adminSidebar}"></div>
+<div class="admin-main">
+  <!-- Topbar -->
+  <div class="admin-topbar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <div class="d-flex align-items-center gap-2">
+      <span class="text-muted small">Được phát triển bởi - LuxeJewel Team</span>
+    </div>
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <span class="text-muted small"><i class="far fa-clock me-1"></i><span th:text="${#temporals.format(#temporals.createNow(),'dd/MM/yyyy HH:mm')}"></span></span>
+      <div class="admin-user-badge">
+        <i class="fas fa-user-shield me-1"></i>
+        <span sec:authentication="name"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-content">
+    <!-- === STAT CARDS ROW (giống hình mẫu) === -->
+    <div class="row g-3 mb-4">
+      <div class="col-xl-2 col-md-4 col-6">
+        <a th:href="@{/admin/users}" class="dash-stat-card" style="border-top: 3px solid #17a2b8;">
+          <div class="dsc-icon" style="color:#17a2b8"><i class="fas fa-users"></i></div>
+          <div class="dsc-label">KHÁCH HÀNG</div>
+          <div class="dsc-value" th:text="${totalUsers}">0</div>
+        </a>
+      </div>
+      <div class="col-xl-2 col-md-4 col-6">
+        <a th:href="@{/admin/orders}" class="dash-stat-card" style="border-top: 3px solid #28a745;">
+          <div class="dsc-icon" style="color:#28a745"><i class="fas fa-shopping-bag"></i></div>
+          <div class="dsc-label">TỔNG ĐƠN HÀNG</div>
+          <div class="dsc-value" th:text="${totalOrders}">0</div>
+        </a>
+      </div>
+      <div class="col-xl-2 col-md-4 col-6">
+        <a th:href="@{/admin/orders(status=PENDING)}" class="dash-stat-card" style="border-top: 3px solid #ffc107;">
+          <div class="dsc-icon" style="color:#ffc107"><i class="fas fa-clock"></i></div>
+          <div class="dsc-label">CHỜ XỬ LÝ</div>
+          <div class="dsc-value" th:text="${pendingOrders}">0</div>
+        </a>
+      </div>
+      <div class="col-xl-2 col-md-4 col-6">
+        <a th:href="@{/admin/products}" class="dash-stat-card" style="border-top: 3px solid #6f42c1;">
+          <div class="dsc-icon" style="color:#6f42c1"><i class="fas fa-gem"></i></div>
+          <div class="dsc-label">SẢN PHẨM</div>
+          <div class="dsc-value" th:text="${totalProducts}">0</div>
+        </a>
+      </div>
+      <div class="col-xl-2 col-md-4 col-6">
+        <div class="dash-stat-card" style="border-top: 3px solid #d4af37;">
+          <div class="dsc-icon" style="color:#d4af37"><i class="fas fa-coins"></i></div>
+          <div class="dsc-label">DOANH THU THÁNG</div>
+          <div class="dsc-value" style="font-size:0.95rem" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT') + ' đ'}">0đ</div>
+        </div>
+      </div>
+      <div class="col-xl-2 col-md-4 col-6">
+        <div class="dash-stat-card" style="border-top: 3px solid #dc3545;">
+          <div class="dsc-icon" style="color:#dc3545"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="dsc-label">SẮP HẾT HÀNG</div>
+          <div class="dsc-value" th:text="${lowStockCount}">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === ROW 2: Recent Orders + Right sidebar === -->
+    <div class="row g-4 mb-4">
+      <!-- Đơn hàng gần đây (giống bảng trong hình mẫu) -->
+      <div class="col-lg-8">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-list-alt me-2 text-gold"></i>Đơn hàng gần đây</h6>
+            <a th:href="@{/admin/orders}" class="btn btn-sm btn-outline-gold">Xem tất cả</a>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover admin-table mb-0 align-middle">
+              <thead>
+                <tr>
+                  <th>Mã ĐH</th>
+                  <th>Khách hàng</th>
+                  <th>Ngày đặt</th>
+                  <th class="text-end">Tổng tiền</th>
+                  <th class="text-center">Trạng thái</th>
+                  <th class="text-center"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="order : ${recentOrders}">
+                  <td class="fw-bold" style="color:#d4af37">
+                    #<span th:text="${order.id}"></span>
+                  </td>
+                  <td>
+                    <div class="fw-semibold" th:text="${order.shippingName}"></div>
+                  </td>
+                  <td class="small text-muted" th:text="${#temporals.format(order.createdAt,'dd/MM/yyyy')}"></td>
+                  <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(order.finalAmount,0,'COMMA',0,'POINT') + ' đ'}"></td>
+                  <td class="text-center">
+                    <span th:class="'badge status-badge-sm status-' + ${order.status.name().toLowerCase()}"
+                          th:text="${order.status.displayName}"></span>
+                  </td>
+                  <td class="text-center">
+                    <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn btn-xs btn-outline-secondary" title="Xem">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+                <tr th:if="${recentOrders.empty}">
+                  <td colspan="6" class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>Chưa có đơn hàng nào
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right sidebar: Sản phẩm sắp hết + Thao tác nhanh -->
+      <div class="col-lg-4">
+        <!-- Sản phẩm sắp hết hàng -->
+        <div class="admin-card mb-4">
+          <div class="admin-card-header">
+            <h6 class="mb-0 fw-bold">
+              <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Sắp hết hàng
+              <span th:if="${lowStockCount > 0}" class="badge bg-danger ms-1" th:text="${lowStockCount}"></span>
+            </h6>
+            <a th:href="@{/admin/products}" class="btn btn-sm btn-outline-gold">Xem tất cả</a>
+          </div>
+          <div th:if="${!lowStockProducts.empty}" style="max-height: 240px; overflow-y: auto;">
+            <div class="low-stock-item" th:each="product : ${lowStockProducts}">
+              <img th:src="${product.mainImage != null} ? ${product.mainImage} : '/images/no-image.png'" class="low-stock-img">
+              <div class="flex-grow-1 ms-2">
+                <div class="fw-semibold small" th:text="${product.name}"></div>
+                <div class="text-muted" style="font-size:0.75rem" th:text="${product.category != null ? product.category.name : ''}"></div>
+              </div>
+              <span th:class="${product.stockQuantity == 0} ? 'badge bg-danger' : 'badge bg-warning text-dark'"
+                    th:text="${product.stockQuantity == 0} ? 'Hết hàng' : 'Còn ' + ${product.stockQuantity}"></span>
+            </div>
+          </div>
+          <div th:if="${lowStockProducts.empty}" class="text-center py-3 text-muted">
+            <i class="fas fa-check-circle fa-2x text-success mb-2 d-block"></i>
+            <p class="mb-0 small">Tồn kho ổn định</p>
+          </div>
+        </div>
+
+        <!-- Thao tác nhanh (giống hình mẫu) -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-bolt me-2 text-gold"></i>Thao tác nhanh</h6>
+          </div>
+          <div class="d-grid gap-2 p-3">
+            <a th:href="@{/admin/products/new}" class="btn btn-outline-primary btn-sm text-start">
+              <i class="fas fa-plus-circle me-2"></i>Thêm sản phẩm mới
+            </a>
+            <a th:href="@{/admin/categories}" class="btn btn-outline-info btn-sm text-start">
+              <i class="fas fa-tags me-2"></i>Quản lý danh mục
+            </a>
+            <a th:href="@{/admin/coupons}" class="btn btn-outline-success btn-sm text-start">
+              <i class="fas fa-ticket-alt me-2"></i>Tạo mã giảm giá
+            </a>
+            <a th:href="@{/admin/orders(status=PENDING)}" class="btn btn-outline-warning btn-sm text-start">
+              <i class="fas fa-clock me-2"></i>Đơn hàng chờ duyệt
+            </a>
+            <a th:href="@{/admin/users}" class="btn btn-outline-secondary btn-sm text-start">
+              <i class="fas fa-user-cog me-2"></i>Quản lý khách hàng
+            </a>
+            <a th:href="@{/admin/reviews}" class="btn btn-outline-danger btn-sm text-start">
+              <i class="fas fa-star me-2"></i>Duyệt đánh giá
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === ROW 3: Biểu đồ === -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-chart-bar me-2 text-gold"></i>Biểu Đồ Doanh Thu Theo Tháng</h6>
+          </div>
+          <div class="card-body py-3" style="height: 320px; position: relative;">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-gold"></i>Trạng Thái Đơn Hàng</h6>
+          </div>
+          <div class="card-body py-3" style="height: 320px; position: relative;">
+            <canvas id="statusChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar() {
+  document.querySelector('.admin-sidebar').classList.toggle('collapsed');
+  document.querySelector('.admin-main').classList.toggle('expanded');
+}
+</script>
+<script th:inline="javascript">
+/*<![CDATA[*/
+document.addEventListener("DOMContentLoaded", function() {
+  const monthlyRevenueData = /*[[${monthlyRevenue}]]*/ {};
+  const pendingOrders = /*[[${pendingOrders}]]*/ 0;
+  const confirmedOrders = /*[[${confirmedOrders}]]*/ 0;
+  const shippingOrders = /*[[${shippingOrders}]]*/ 0;
+  const completedOrders = /*[[${completedOrders}]]*/ 0;
+
+  const months = Object.keys(monthlyRevenueData || {});
+  const revenues = Object.values(monthlyRevenueData || {});
+
+  // Bar Chart
+  if(document.getElementById('revenueChart')) {
+    const ctxRev = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctxRev, {
+      type: 'bar',
+      data: {
+        labels: months.length > 0 ? months.map(m => {
+          const parts = m.split('-');
+          return parts.length === 2 ? 'T' + parts[1] + '/' + parts[0] : m;
+        }) : ['Chưa có dữ liệu'],
+        datasets: [{
+          label: 'Doanh thu',
+          data: revenues.length > 0 ? revenues : [0],
+          backgroundColor: 'rgba(212, 175, 55, 0.7)',
+          borderColor: '#d4af37',
+          borderWidth: 1.5,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                if(value >= 1000000) return (value/1000000).toFixed(1) + 'tr';
+                if(value >= 1000) return (value/1000).toFixed(0) + 'k';
+                return value.toLocaleString('vi-VN') + 'đ';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Doughnut Chart
+  if(document.getElementById('statusChart')) {
+    const total = pendingOrders + confirmedOrders + shippingOrders + completedOrders;
+    const ctxStatus = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctxStatus, {
+      type: 'doughnut',
+      data: {
+        labels: ['Chờ duyệt', 'Đã xác nhận', 'Đang giao', 'Hoàn thành'],
+        datasets: [{
+          data: total > 0 ? [pendingOrders, confirmedOrders, shippingOrders, completedOrders] : [1],
+          backgroundColor: total > 0 ? [
+            'rgba(255, 193, 7, 0.85)',
+            'rgba(23, 162, 184, 0.85)',
+            'rgba(253, 126, 20, 0.85)',
+            'rgba(40, 167, 69, 0.85)'
+          ] : ['rgba(200,200,200,0.5)'],
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 12, font: { size: 11 }, padding: 15 }
+          }
+        },
+        cutout: '65%'
+      }
+    });
+  }
+});
+/*]]>*/
+</script>
+</body>
+</html>

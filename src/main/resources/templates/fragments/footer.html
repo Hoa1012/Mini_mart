@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer" class="footer mt-5">
+  <div class="footer-top py-5">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <h5 class="footer-brand mb-3"><i class="fas fa-gem me-2"></i>LuxeJewel</h5>
+          <p class="text-muted small">Trang sức cao cấp - Nơi gửi gắm những khoảnh khắc trân quý nhất cuộc đời bạn. Chúng tôi cam kết mang đến sản phẩm chính hãng 100%.</p>
+          <div class="social-links mt-3">
+            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-tiktok"></i></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-4">
+          <h6 class="footer-title mb-3">Danh Mục</h6>
+          <ul class="list-unstyled footer-links">
+            <li th:each="cat : ${globalCategories}"><a th:href="@{/shop(categoryId=${cat.id})}" th:text="${cat.name}"></a></li>
+          </ul>
+        </div>
+        <div class="col-lg-3 col-md-4">
+          <h6 class="footer-title mb-3">Hỗ Trợ</h6>
+          <ul class="list-unstyled footer-links">
+            <li><a href="#">Chính sách đổi trả</a></li>
+            <li><a href="#">Chính sách bảo hành</a></li>
+            <li><a href="#">Hướng dẫn chọn size</a></li>
+            <li><a href="#">Câu hỏi thường gặp</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-3 col-md-4">
+          <h6 class="footer-title mb-3">Liên Hệ</h6>
+          <ul class="list-unstyled footer-links">
+            <li><i class="fas fa-map-marker-alt me-2 text-gold"></i>123 Nguyễn Huệ, Q.1, TP.HCM</li>
+            <li><i class="fas fa-phone me-2 text-gold"></i>1800 6789</li>
+            <li><i class="fas fa-envelope me-2 text-gold"></i>info@luxejewel.vn</li>
+            <li><i class="fas fa-clock me-2 text-gold"></i>8:00 - 21:00 (T2-CN)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom py-3">
+    <div class="container text-center">
+      <small class="text-muted">© 2026 LuxeJewel. Tất cả quyền được bảo lưu.</small>
+    </div>
+  </div>
+
+  <!-- LUXEJEWEL FLOATING AI CHATBOX -->
+  <div class="ai-chat-launcher pulse" id="aiChatLauncher" onclick="toggleAIChat()">
+    <i class="fas fa-gem"></i>
+    <span class="ai-chat-online-dot"></span>
+  </div>
+
+  <div class="ai-chat-panel" id="aiChatPanel">
+    <!-- Header -->
+    <div class="ai-chat-header">
+      <div class="ai-chat-header-info">
+        <div class="ai-chat-avatar">
+          <i class="fas fa-gem"></i>
+        </div>
+        <div class="ai-chat-header-text">
+          <h6>LuxeJewel Advisor</h6>
+          <span>Đang hoạt động</span>
+        </div>
+      </div>
+      <button class="ai-chat-close-btn" onclick="toggleAIChat()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Body (Chat messages area) -->
+    <div class="ai-chat-body" id="aiChatBody">
+      <!-- Welcome Message -->
+      <div class="ai-chat-message-row bot">
+        <div class="avatar"><i class="fas fa-gem"></i></div>
+        <div class="ai-chat-msg-bubble">
+          ✨ **Xin chào quý khách!** Tôi là Trợ lý mua sắm thông minh của LuxeJewel. ✨<br><br>
+          Tôi có thể giúp quý khách tìm các mẫu nhẫn đính hôn, dây chuyền, bông tai lấp lánh, hoặc tư vấn cách đo size tay và bảo quản vàng bạc như mới. Quý khách muốn tham khảo gì hôm nay ạ?
+        </div>
+      </div>
+    </div>
+
+    <!-- Suggested Quick Replies -->
+    <div class="ai-chat-suggested-replies" id="aiChatSuggestions">
+      <div class="ai-chat-suggested-reply" onclick="sendQuickReply('Tư vấn nhẫn kim cương')">💍 Nhẫn Kim Cương</div>
+      <div class="ai-chat-suggested-reply" onclick="sendQuickReply('Mã giảm giá')">🏷️ Khuyến Mãi Hot</div>
+      <div class="ai-chat-suggested-reply" onclick="sendQuickReply('Cách bảo quản vàng bạc')">✨ Bảo Quản Vàng Bạc</div>
+      <div class="ai-chat-suggested-reply" onclick="sendQuickReply('Chính sách đổi trả')">🛡️ Chính Sách Shop</div>
+    </div>
+
+    <!-- Footer Input -->
+    <div class="ai-chat-footer">
+      <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Nhập câu hỏi của bạn..." onkeydown="handleChatKeyPress(event)">
+      <button class="ai-chat-send-btn" onclick="sendCustomMessage()">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    function toggleAIChat() {
+      const panel = document.getElementById('aiChatPanel');
+      const launcher = document.getElementById('aiChatLauncher');
+      if (panel && launcher) {
+        panel.classList.toggle('show');
+        launcher.classList.toggle('pulse');
+      }
+    }
+
+    function handleChatKeyPress(event) {
+      if (event.key === 'Enter') {
+        sendCustomMessage();
+      }
+    }
+
+    function sendQuickReply(text) {
+      appendUserMessage(text);
+      fetchAIResponse(text);
+    }
+
+    function sendCustomMessage() {
+      const input = document.getElementById('aiChatInput');
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      appendUserMessage(text);
+      fetchAIResponse(text);
+    }
+
+    function appendUserMessage(text) {
+      const chatBody = document.getElementById('aiChatBody');
+      if (!chatBody) return;
+
+      const html = `
+        <div class="ai-chat-message-row user">
+          <div class="ai-chat-msg-bubble">${text}</div>
+        </div>`;
+      chatBody.insertAdjacentHTML('beforeend', html);
+      scrollToBottom();
+    }
+
+    function appendBotMessage(htmlContent) {
+      const chatBody = document.getElementById('aiChatBody');
+      if (!chatBody) return;
+
+      const html = `
+        <div class="ai-chat-message-row bot">
+          <div class="avatar"><i class="fas fa-gem"></i></div>
+          <div class="ai-chat-msg-bubble">${htmlContent}</div>
+        </div>`;
+      chatBody.insertAdjacentHTML('beforeend', html);
+      scrollToBottom();
+    }
+
+    function showTypingIndicator() {
+      const chatBody = document.getElementById('aiChatBody');
+      if (!chatBody) return null;
+
+      const html = `
+        <div class="ai-chat-message-row bot" id="aiChatTypingIndicator">
+          <div class="avatar"><i class="fas fa-gem"></i></div>
+          <div class="ai-chat-msg-bubble bg-light">
+            <div class="typing-indicator">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>`;
+      chatBody.insertAdjacentHTML('beforeend', html);
+      scrollToBottom();
+      return document.getElementById('aiChatTypingIndicator');
+    }
+
+    function scrollToBottom() {
+      const chatBody = document.getElementById('aiChatBody');
+      if (chatBody) {
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }
+    }
+
+    function fetchAIResponse(userMessage) {
+      const indicator = showTypingIndicator();
+      const csrfMeta = document.querySelector('meta[name="_csrf"]');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+      
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      if (csrfMeta && csrfHeader) {
+        headers[csrfHeader.content] = csrfMeta.content;
+      }
+
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ message: userMessage })
+      })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('HTTP error ' + res.status);
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (indicator) indicator.remove();
+        // Dynamic simulated natural human typing delay (750ms) for high quality look
+        setTimeout(() => {
+          const reply = data && data.reply ? data.reply : "Dạ, LuxeJewel Advisor gặp khó khăn khi xử lý câu hỏi này. Quý khách vui lòng thử lại câu hỏi khác nhé!";
+          appendBotMessage(reply);
+        }, 750);
+      })
+      .catch(err => {
+        console.error(err);
+        if (indicator) indicator.remove();
+        setTimeout(() => {
+          appendBotMessage("Dạ, hệ thống đang bận một chút hoặc có sự cố kết nối. Quý khách vui lòng thử lại sau ít phút hoặc liên hệ Hotline: **1800 6789** để được hỗ trợ tức thì ạ!");
+        }, 750);
+      });
+    }
+    /*]]>*/
+  </script>
+</footer>
+</body>
+</html>

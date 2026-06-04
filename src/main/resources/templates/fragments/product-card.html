@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:fragment="productCard(product)" class="product-card h-100">
+  <!-- Badge -->
+  <div class="product-badges">
+    <span th:if="${product.onSale}" class="badge-sale">SALE</span>
+    <span th:if="${product.stockQuantity == 0}" class="badge-soldout">Hết hàng</span>
+    <span th:if="${product.stockQuantity > 0 and product.stockQuantity < 5}" class="badge-low">Sắp hết</span>
+  </div>
+
+  <!-- Image -->
+  <div class="product-img-wrap">
+    <a th:href="@{/shop/{id}(id=${product.id})}">
+      <img th:src="${product.mainImage != null} ? ${product.mainImage} : '/images/no-image.png'"
+           th:alt="${product.name}" class="product-img" loading="lazy">
+    </a>
+    <!-- Hover actions -->
+    <div class="product-actions">
+      <button type="button" class="action-btn" th:attr="data-id=${product.id}" onclick="quickView(this)"
+              title="Xem nhanh"><i class="fas fa-eye"></i></button>
+      <button type="button" class="action-btn add-cart-btn"
+              th:if="${product.stockQuantity > 0}"
+              th:attr="data-id=${product.id}"
+              onclick="addToCart(this.dataset.id, 1)"
+              title="Thêm vào giỏ"><i class="fas fa-shopping-bag"></i></button>
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="product-info">
+    <div class="product-category text-muted small"
+         th:text="${product.category != null ? product.category.name : ''}"></div>
+    <h6 class="product-name">
+      <a th:href="@{/shop/{id}(id=${product.id})}" th:text="${product.name}" class="text-decoration-none text-dark"></a>
+    </h6>
+    <div class="product-brand small text-muted" th:text="${product.brand}"></div>
+    <div class="product-price mt-2">
+      <span th:if="${product.onSale}" class="price-old"
+            th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + 'đ'}"></span>
+      <span class="price-current"
+            th:text="${#numbers.formatDecimal(product.currentPrice, 0, 'COMMA', 0, 'POINT') + 'đ'}"></span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

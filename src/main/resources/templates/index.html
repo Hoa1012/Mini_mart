@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <title>LuxeJewel - Trang Sức Cao Cấp</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<!-- ===== HERO BANNER ===== -->
+<section class="hero-section">
+  <div class="hero-overlay"></div>
+  <div class="container h-100">
+    <div class="row h-100 align-items-center">
+      <div class="col-lg-6 hero-content">
+        <span class="hero-badge">✨ Bộ sưu tập mới 2026</span>
+        <h1 class="hero-title">Trang Sức<br><span class="text-gold">Cao Cấp</span><br>Cho Mọi Khoảnh Khắc</h1>
+        <p class="hero-subtitle">Khám phá hàng nghìn mẫu trang sức tinh xảo từ vàng, bạch kim đến kim cương thiên nhiên. Cam kết chính hãng 100%.</p>
+        <div class="d-flex gap-3 flex-wrap">
+          <a th:href="@{/shop}" class="btn btn-gold btn-lg px-4 py-3">
+            <i class="fas fa-gem me-2"></i>Khám Phá Ngay
+          </a>
+          <a th:href="@{/shop(salePrice=true)}" class="btn btn-outline-light btn-lg px-4 py-3">
+            <i class="fas fa-tag me-2"></i>Xem Ưu Đãi
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="features-section py-4 bg-cream">
+  <div class="container">
+    <div class="row g-3">
+      <div class="col-md-3 col-6">
+        <div class="feature-card text-center">
+          <i class="fas fa-truck-fast feature-icon"></i>
+          <div class="feature-text">
+            <strong>Miễn Phí Vận Chuyển</strong>
+            <small>Đơn từ 2 triệu</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="feature-card text-center">
+          <i class="fas fa-shield-halved feature-icon"></i>
+          <div class="feature-text">
+            <strong>Chính Hãng 100%</strong>
+            <small>Cam kết có giấy tờ</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="feature-card text-center">
+          <i class="fas fa-arrows-rotate feature-icon"></i>
+          <div class="feature-text">
+            <strong>Đổi Trả 30 Ngày</strong>
+            <small>Không điều kiện</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="feature-card text-center">
+          <i class="fas fa-headset feature-icon"></i>
+          <div class="feature-text">
+            <strong>Hỗ Trợ 24/7</strong>
+            <small>Hotline: 1800 6789</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CATEGORIES ===== -->
+<section class="py-5">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <span class="section-badge">Danh Mục</span>
+      <h2 class="section-title">Khám Phá Theo Loại</h2>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4 col-6" th:each="cat : ${categories}">
+        <a th:href="@{/shop(categoryId=${cat.id})}" class="category-card">
+          <div class="category-icon">
+            <i class="fas fa-gem"></i>
+          </div>
+          <div class="category-info">
+            <h6 th:text="${cat.name}" class="mb-0"></h6>
+            <small class="text-muted">Xem tất cả</small>
+          </div>
+          <i class="fas fa-chevron-right ms-auto text-gold"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NEW ARRIVALS ===== -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="section-header d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <span class="section-badge">Mới Nhất</span>
+        <h2 class="section-title mb-0">Sản Phẩm Mới</h2>
+      </div>
+      <a th:href="@{/shop(sort=newest)}" class="btn btn-outline-gold">Xem tất cả <i class="fas fa-arrow-right ms-1"></i></a>
+    </div>
+    <div class="row g-4">
+      <div class="col-xl-3 col-lg-4 col-md-6" th:each="product : ${newArrivals}">
+        <div th:replace="~{fragments/product-card :: productCard(${product})}"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SALE PRODUCTS ===== -->
+<section class="py-5 sale-section" th:if="${!saleProducts.empty}">
+  <div class="container">
+    <div class="section-header d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <span class="section-badge bg-danger text-white">HOT SALE</span>
+        <h2 class="section-title mb-0">Ưu Đãi Đặc Biệt</h2>
+      </div>
+      <a th:href="@{/shop}" class="btn btn-danger">Xem tất cả <i class="fas fa-fire ms-1"></i></a>
+    </div>
+    <div class="row g-4">
+      <div class="col-xl-3 col-lg-4 col-md-6" th:each="product : ${saleProducts}">
+        <div th:replace="~{fragments/product-card :: productCard(${product})}"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== POPULAR ===== -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="section-header d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <span class="section-badge">Nổi Bật</span>
+        <h2 class="section-title mb-0">Bán Chạy Nhất</h2>
+      </div>
+      <a th:href="@{/shop(sort=popular)}" class="btn btn-outline-gold">Xem tất cả <i class="fas fa-arrow-right ms-1"></i></a>
+    </div>
+    <div class="row g-4">
+      <div class="col-xl-3 col-lg-4 col-md-6" th:each="product : ${popularProducts}">
+        <div th:replace="~{fragments/product-card :: productCard(${product})}"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BANNER CTA ===== -->
+<section class="cta-section py-5">
+  <div class="container text-center">
+    <h2 class="cta-title mb-3">Bộ Sưu Tập Cưới 2026</h2>
+    <p class="cta-subtitle mb-4">Những chiếc nhẫn cưới hoàn hảo cho ngày trọng đại của bạn</p>
+    <a th:href="@{/shop(categoryId=1)}" class="btn btn-light btn-lg px-5">
+      <i class="fas fa-heart me-2 text-danger"></i>Khám Phá Ngay
+    </a>
+  </div>
+</section>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- Quick View Modal -->
+<div class="modal fade" id="quickViewModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="quickViewContent">
+        <div class="text-center py-4"><div class="spinner-border text-gold"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

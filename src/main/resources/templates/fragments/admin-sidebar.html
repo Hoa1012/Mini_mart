@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside th:fragment="adminSidebar" class="admin-sidebar">
+  <div class="admin-brand">
+    <i class="fas fa-gem me-2"></i>
+    <span>LuxeJewel Admin</span>
+  </div>
+  <nav class="admin-nav">
+    <a th:href="@{/admin/dashboard}" class="admin-nav-link" data-path="/admin/dashboard,/admin/,/admin">
+      <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+    </a>
+    <div class="admin-nav-group">Quản Lý Sản Phẩm</div>
+    <a th:href="@{/admin/products}" class="admin-nav-link" data-path="/admin/products">
+      <i class="fas fa-gem"></i><span>Sản Phẩm</span>
+    </a>
+    <a th:href="@{/admin/categories}" class="admin-nav-link" data-path="/admin/categories">
+      <i class="fas fa-tags"></i><span>Danh Mục</span>
+    </a>
+    <div class="admin-nav-group">Quản Lý Bán Hàng</div>
+    <a th:href="@{/admin/orders}" class="admin-nav-link" data-path="/admin/orders">
+      <i class="fas fa-shopping-bag"></i><span>Đơn Hàng</span>
+    </a>
+    <a th:href="@{/admin/coupons}" class="admin-nav-link" data-path="/admin/coupons">
+      <i class="fas fa-ticket-alt"></i><span>Mã Giảm Giá</span>
+    </a>
+    <div class="admin-nav-group">Quản Lý Hệ Thống</div>
+    <a th:href="@{/admin/users}" class="admin-nav-link" data-path="/admin/users">
+      <i class="fas fa-users"></i><span>Người Dùng</span>
+    </a>
+    <a th:href="@{/admin/reviews}" class="admin-nav-link" data-path="/admin/reviews">
+      <i class="fas fa-star"></i><span>Đánh Giá</span>
+    </a>
+    <div class="admin-nav-divider"></div>
+    <a th:href="@{/}" class="admin-nav-link">
+      <i class="fas fa-store"></i><span>Xem Website</span>
+    </a>
+    <form th:action="@{/logout}" method="post" class="d-inline w-100">
+      <button type="submit" class="admin-nav-link w-100 border-0 bg-transparent text-start">
+        <i class="fas fa-sign-out-alt"></i><span>Đăng Xuất</span>
+      </button>
+    </form>
+  </nav>
+</aside>
+<script th:inline="javascript">
+/*<![CDATA[*/
+(function(){
+  var path = window.location.pathname;
+  document.querySelectorAll('.admin-nav-link[data-path]').forEach(function(link){
+    var paths = link.getAttribute('data-path').split(',');
+    for(var i=0; i<paths.length; i++){
+      var p = paths[i].trim();
+      if(path === p || (p !== '/admin' && p !== '/admin/' && p !== '/admin/dashboard' && path.startsWith(p))){
+        link.classList.add('active');
+        return;
+      }
+      if((p === '/admin' || p === '/admin/' || p === '/admin/dashboard') && (path === '/admin' || path === '/admin/' || path === '/admin/dashboard')){
+        link.classList.add('active');
+        return;
+      }
+    }
+  });
+})();
+/*]]>*/
+</script>
+</body>
+</html>

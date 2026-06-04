@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <title th:text="${product.name} + ' - LuxeJewel'"></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="page-header py-3">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a th:href="@{/}">Trang Chủ</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/shop}">Trang Sức</a></li>
+        <li class="breadcrumb-item active" th:text="${product.name}"></li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row g-5">
+    <!-- Images -->
+    <div class="col-lg-6">
+      <div class="product-gallery">
+        <div class="main-image-wrap mb-3">
+          <img th:src="${product.mainImage != null} ? ${product.mainImage} : '/images/no-image.png'"
+               th:alt="${product.name}" class="main-product-image" id="mainImage">
+          <div th:if="${product.onSale}" class="gallery-badge">SALE</div>
+        </div>
+        <div class="thumb-list d-flex gap-2 flex-wrap" th:if="${product.images != null and !product.images.empty}">
+          <img th:src="${product.mainImage}" class="thumb-img active"
+               onclick="changeImage(this)" th:alt="${product.name}">
+          <img th:each="img : ${product.images}" th:src="${img.imagePath}"
+               class="thumb-img" onclick="changeImage(this)" th:alt="${product.name}">
+        </div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="col-lg-6">
+      <div class="product-detail-info">
+        <div class="product-category-tag mb-2"
+             th:text="${product.category != null ? product.category.name : ''}"></div>
+        <h1 class="product-detail-name" th:text="${product.name}"></h1>
+
+        <!-- Rating -->
+        <div class="product-rating d-flex align-items-center gap-2 mb-3">
+          <div class="stars">
+            <i th:each="i : ${#numbers.sequence(1,5)}"
+               th:class="${i <= avgRating} ? 'fas fa-star text-warning' : 'far fa-star text-warning'"></i>
+          </div>
+          <span class="text-muted small">
+            (<span th:text="${#numbers.formatDecimal(avgRating, 1, 1)}"></span>/5 -
+             <span th:text="${reviews.size()}"></span> đánh giá)
+          </span>
+        </div>
+
+        <!-- Price -->
+        <div class="product-detail-price mb-3">
+          <span th:if="${product.onSale}" class="old-price me-3"
+                th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT') + 'đ'}"></span>
+          <span class="current-price"
+                th:text="${#numbers.formatDecimal(product.currentPrice, 0, 'COMMA', 0, 'POINT') + 'đ'}"></span>
+          <span th:if="${product.onSale}" class="ms-2 badge bg-danger">
+            -<span th:text="${#numbers.formatDecimal((product.price - product.currentPrice) * 100 / product.price, 0, 0)}"></span>%
+          </span>
+        </div>
+
+        <!-- Details -->
+        <div class="product-meta mb-4">
+          <div class="meta-item" th:if="${product.brand}">
+            <span class="meta-label">Thương hiệu:</span>
+            <span class="meta-value" th:text="${product.brand}"></span>
+          </div>
+          <div class="meta-item" th:if="${product.material}">
+            <span class="meta-label">Chất liệu:</span>
+            <span class="meta-value" th:text="${product.material}"></span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Tình trạng:</span>
+            <span th:if="${product.stockQuantity > 5}" class="badge bg-success">Còn hàng</span>
+            <span th:if="${product.stockQuantity > 0 and product.stockQuantity <= 5}"
+                  class="badge bg-warning text-dark">
+              Còn <span th:text="${product.stockQuantity}"></span> sản phẩm
+            </span>
+            <span th:if="${product.stockQuantity == 0}" class="badge bg-danger">Hết hàng</span>
+          </div>
+        </div>
+
+        <!-- Add to Cart -->
+        <div th:if="${product.stockQuantity > 0}" class="add-to-cart-section mb-4">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="qty-control">
+              <button class="qty-btn" onclick="changeQty(-1)"><i class="fas fa-minus"></i></button>
+              <input type="number" id="qtyInput" value="1" min="1"
+                     th:max="${product.stockQuantity}" class="qty-input">
+              <button class="qty-btn" onclick="changeQty(1)"><i class="fas fa-plus"></i></button>
+            </div>
+            <small class="text-muted">Tối đa <span th:text="${product.stockQuantity}"></span> sản phẩm</small>
+          </div>
+          <div class="d-flex gap-3" sec:authorize="isAuthenticated()">
+            <button type="button" class="btn btn-gold flex-grow-1 py-3 fw-bold"
+                    th:attr="data-id=${product.id}"
+                    onclick="addToCartWithQty(this.dataset.id)">
+              <i class="fas fa-shopping-bag me-2"></i>Thêm Vào Giỏ
+            </button>
+            <button type="button" class="btn btn-outline-gold px-4" title="Yêu thích">
+              <i class="far fa-heart"></i>
+            </button>
+          </div>
+          <div sec:authorize="isAnonymous()">
+            <a th:href="@{/login}" class="btn btn-gold w-100 py-3 fw-bold">
+              <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập để mua hàng
+            </a>
+          </div>
+        </div>
+        <div th:if="${product.stockQuantity == 0}" class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-2"></i>Sản phẩm tạm hết hàng
+        </div>
+
+        <!-- Description -->
+        <div class="product-description">
+          <h6 class="fw-bold mb-2">Mô Tả Sản Phẩm</h6>
+          <p th:text="${product.description}" class="text-muted"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reviews Section -->
+  <div class="row mt-5">
+    <div class="col-12">
+      <h4 class="section-title mb-4">Đánh Giá Sản Phẩm</h4>
+
+      <!-- Write review form -->
+      <div sec:authorize="isAuthenticated()" class="review-form-card mb-4">
+        <h6 class="fw-bold mb-3"><i class="fas fa-pen me-2 text-gold"></i>Viết Đánh Giá</h6>
+        <form th:action="@{/user/reviews}" method="post">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <input type="hidden" name="productId" th:value="${product.id}">
+          <div class="mb-3">
+            <label class="form-label">Đánh giá sao</label>
+            <div class="star-rating-input" id="starInput">
+              <i class="fas fa-star star-btn" data-value="1"></i>
+              <i class="fas fa-star star-btn" data-value="2"></i>
+              <i class="fas fa-star star-btn" data-value="3"></i>
+              <i class="fas fa-star star-btn" data-value="4"></i>
+              <i class="fas fa-star star-btn" data-value="5"></i>
+            </div>
+            <input type="hidden" name="rating" id="ratingValue" value="5">
+          </div>
+          <div class="mb-3">
+            <textarea class="form-control" name="comment" rows="3"
+                      placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-gold">
+            <i class="fas fa-paper-plane me-2"></i>Gửi Đánh Giá
+          </button>
+        </form>
+      </div>
+
+      <!-- Review list -->
+      <div th:if="${!reviews.empty}">
+        <div class="review-item" th:each="review : ${reviews}">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="d-flex gap-3">
+              <div class="reviewer-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <div>
+                <strong th:text="${review.user != null ? review.user.fullName : 'Ẩn danh'}"></strong>
+                <div class="stars-sm">
+                  <i th:each="i : ${#numbers.sequence(1,5)}"
+                     th:class="${i <= review.rating} ? 'fas fa-star text-warning' : 'far fa-star text-muted'"
+                     style="font-size:0.75rem"></i>
+                </div>
+                <p class="mb-0 mt-1 text-muted" th:text="${review.comment}"></p>
+              </div>
+            </div>
+            <small class="text-muted" th:text="${#temporals.format(review.createdAt,'dd/MM/yyyy')}"></small>
+          </div>
+        </div>
+      </div>
+      <div th:if="${reviews.empty}" class="text-center py-4 text-muted">
+        <i class="far fa-comment-dots fa-2x mb-2"></i>
+        <p>Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  <div class="row mt-5" th:if="${!relatedProducts.empty}">
+    <div class="col-12">
+      <h4 class="section-title mb-4">Sản Phẩm Liên Quan</h4>
+      <div class="row g-4">
+        <div class="col-xl-3 col-md-6" th:each="p : ${relatedProducts}" th:if="${p.id != product.id}">
+          <div th:replace="~{fragments/product-card :: productCard(${p})}"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/main.js}"></script>
+<script>
+function changeImage(element) {
+  document.getElementById('mainImage').src = element.src;
+  document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
+  element.classList.add('active');
+}
+function changeQty(delta) {
+  const input = document.getElementById('qtyInput');
+  let val = parseInt(input.value) + delta;
+  const max = parseInt(input.max);
+  if (val < 1) val = 1;
+  if (val > max) val = max;
+  input.value = val;
+}
+function addToCartWithQty(productId) {
+  const qty = parseInt(document.getElementById('qtyInput').value);
+  addToCart(productId, qty);
+}
+// Star rating input
+document.querySelectorAll('.star-btn').forEach((star, idx) => {
+  star.addEventListener('click', function() {
+    const val = this.dataset.value;
+    document.getElementById('ratingValue').value = val;
+    document.querySelectorAll('.star-btn').forEach((s, i) => {
+      s.style.color = i < val ? '#f5c518' : '#ccc';
+    });
+  });
+  star.style.color = '#f5c518';
+  star.style.cursor = 'pointer';
+  star.style.fontSize = '1.5rem';
+});
+</script>
+</body>
+</html>

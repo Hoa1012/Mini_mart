@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đặt Hàng - LuxeJewel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div class="page-header py-3">
+  <div class="container">
+    <nav><ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a th:href="@{/}">Trang Chủ</a></li>
+      <li class="breadcrumb-item"><a th:href="@{/cart}">Giỏ Hàng</a></li>
+      <li class="breadcrumb-item active">Đặt Hàng</li>
+    </ol></nav>
+  </div>
+</div>
+
+<!-- Steps -->
+<div class="checkout-steps py-3">
+  <div class="container">
+    <div class="steps-wrap">
+      <div class="step done"><span class="step-num">1</span><span class="step-label">Giỏ Hàng</span></div>
+      <div class="step-line done"></div>
+      <div class="step active"><span class="step-num">2</span><span class="step-label">Thông Tin</span></div>
+      <div class="step-line"></div>
+      <div class="step"><span class="step-num">3</span><span class="step-label">Hoàn Tất</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div th:if="${error}" class="alert alert-danger mb-4">
+    <i class="fas fa-exclamation-circle me-2"></i><span th:text="${error}"></span>
+  </div>
+
+  <form th:action="@{/checkout}" method="post" th:object="${checkoutDto}">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <div class="row g-4">
+      <!-- Shipping info -->
+      <div class="col-lg-7">
+        <div class="checkout-card">
+          <h5 class="checkout-section-title">
+            <i class="fas fa-map-marker-alt text-gold me-2"></i>Thông Tin Giao Hàng
+          </h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Họ tên người nhận <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" th:field="*{shippingName}"
+                     th:classappend="${#fields.hasErrors('shippingName')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:errors="*{shippingName}"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
+              <input type="tel" class="form-control" th:field="*{shippingPhone}"
+                     th:classappend="${#fields.hasErrors('shippingPhone')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:errors="*{shippingPhone}"></div>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Địa chỉ giao hàng <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" th:field="*{shippingAddress}"
+                     placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"
+                     th:classappend="${#fields.hasErrors('shippingAddress')} ? 'is-invalid'">
+              <div class="invalid-feedback" th:errors="*{shippingAddress}"></div>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Ghi chú cho đơn hàng</label>
+              <textarea class="form-control" th:field="*{note}" rows="2"
+                        placeholder="VD: Giao giờ hành chính, gọi trước khi giao..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coupon -->
+        <div class="checkout-card mt-4">
+          <h5 class="checkout-section-title">
+            <i class="fas fa-tag text-gold me-2"></i>Mã Giảm Giá
+          </h5>
+          <div class="input-group">
+            <input type="text" class="form-control" th:field="*{couponCode}"
+                   placeholder="Nhập mã giảm giá (nếu có)" style="text-transform:uppercase">
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="checkout-card mt-4">
+          <h5 class="checkout-section-title">
+            <i class="fas fa-credit-card text-gold me-2"></i>Phương Thức Thanh Toán
+          </h5>
+          <div class="d-flex flex-column gap-3">
+            <!-- COD -->
+            <label class="payment-option" id="paymentCOD" onclick="selectPayment(this)">
+              <input type="radio" th:field="*{paymentMethod}" value="COD" class="form-check-input me-3" checked>
+              <i class="fas fa-money-bill-wave text-success me-3 fs-4"></i>
+              <div class="flex-grow-1">
+                <strong>Thanh toán khi nhận hàng (COD)</strong>
+                <small class="d-block text-muted">Kiểm tra hàng trước khi thanh toán</small>
+              </div>
+            </label>
+            <!-- Bank Transfer -->
+            <label class="payment-option" id="paymentBANK" onclick="selectPayment(this)">
+              <input type="radio" th:field="*{paymentMethod}" value="BANK_TRANSFER" class="form-check-input me-3">
+              <i class="fas fa-university text-primary me-3 fs-4"></i>
+              <div class="flex-grow-1">
+                <strong>Chuyển khoản ngân hàng</strong>
+                <small class="d-block text-muted">Chuyển khoản qua tài khoản ngân hàng</small>
+              </div>
+            </label>
+            <!-- MoMo -->
+            <label class="payment-option" id="paymentMOMO" onclick="selectPayment(this)">
+              <input type="radio" th:field="*{paymentMethod}" value="MOMO" class="form-check-input me-3">
+              <i class="fas fa-wallet text-danger me-3 fs-4"></i>
+              <div class="flex-grow-1">
+                <strong>Ví MoMo</strong>
+                <small class="d-block text-muted">Thanh toán qua ví điện tử MoMo</small>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="col-lg-5">
+        <div class="checkout-card sticky-top" style="top:80px">
+          <h5 class="checkout-section-title">
+            <i class="fas fa-shopping-bag text-gold me-2"></i>Đơn Hàng Của Bạn
+          </h5>
+          <div class="order-items-list">
+            <div class="order-item" th:each="item : ${cartItems}">
+              <img th:src="${item.product.mainImage != null} ? ${item.product.mainImage} : '/images/no-image.png'"
+                   class="order-item-img" th:alt="${item.product.name}">
+              <div class="order-item-info flex-grow-1">
+                <div class="fw-semibold small" th:text="${item.product.name}"></div>
+                <div class="text-muted" style="font-size:0.8rem">
+                  x<span th:text="${item.quantity}"></span>
+                </div>
+              </div>
+              <div class="fw-bold text-gold small"
+                   th:text="${#numbers.formatDecimal(item.product.currentPrice * item.quantity, 0, 'COMMA', 0, 'POINT') + 'đ'}"></div>
+            </div>
+          </div>
+          <hr>
+          <div class="summary-row">
+            <span>Tạm tính</span>
+            <span th:text="${#numbers.formatDecimal(cartTotal, 0, 'COMMA', 0, 'POINT') + 'đ'}"></span>
+          </div>
+          <div class="summary-row">
+            <span>Vận chuyển</span>
+            <span th:text="${cartTotal >= 2000000} ? 'Miễn phí' : '30.000đ'" class="text-success"></span>
+          </div>
+          <hr>
+          <div class="summary-total">
+            <span>Tổng Cộng</span>
+            <span class="text-gold fw-bold fs-5"
+                  th:text="${#numbers.formatDecimal(cartTotal, 0, 'COMMA', 0, 'POINT') + 'đ'}"></span>
+          </div>
+          <button type="submit" class="btn btn-gold w-100 py-3 mt-4 fw-bold fs-6">
+            <i class="fas fa-check-circle me-2"></i>Xác Nhận Đặt Hàng
+          </button>
+          <p class="text-center text-muted small mt-2">
+            <i class="fas fa-shield-alt me-1"></i>Thông tin của bạn được bảo mật tuyệt đối
+          </p>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function selectPayment(label) {
+  // Remove selected style from all
+  document.querySelectorAll('.payment-option').forEach(opt => {
+    opt.style.borderColor = '#e8e0d0';
+    opt.style.background = '#fff';
+  });
+
+  // Add selected style to clicked
+  label.style.borderColor = '#c9a96e';
+  label.style.background = 'rgba(201,169,110,0.05)';
+  // Check the radio
+  const radio = label.querySelector('input[type="radio"]');
+  if (radio) radio.checked = true;
+}
+// Initialize selected state on load
+document.addEventListener('DOMContentLoaded', function() {
+  const checked = document.querySelector('input[name="paymentMethod"]:checked');
+  if (checked) {
+    const label = checked.closest('.payment-option');
+    if (label) {
+      label.style.borderColor = '#c9a96e';
+      label.style.background = 'rgba(201,169,110,0.05)';
+    }
+  }
+});
+</script>
+</body>
+</html>
