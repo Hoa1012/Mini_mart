@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { CartProvider } from './contexts/CartContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import ChatBot from './components/ChatBot'
 
 // Layouts
 import UserLayout from './layouts/UserLayout'
@@ -19,6 +20,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import Forbidden from './pages/Forbidden'
+import OAuthCallback from './pages/OAuthCallback'
 import Profile from './pages/Profile'
 
 // Admin Pages
@@ -42,6 +44,8 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/forbidden" element={<Forbidden />} />
+            {/* OAuth2 Callback - nhận token sau đăng nhập Google/Facebook */}
+            <Route path="/oauth2/callback" element={<OAuthCallback />} />
 
             {/* User Website Layout */}
             <Route path="/" element={<UserLayout />}>
@@ -106,6 +110,7 @@ function App() {
             {/* Fallback Catch-All Route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          <ChatBot />
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>

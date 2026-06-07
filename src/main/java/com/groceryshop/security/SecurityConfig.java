@@ -1,5 +1,8 @@
 package com.groceryshop.security;
 
+import com.groceryshop.security.oauth2.CustomOAuth2UserService;
+import com.groceryshop.security.oauth2.OAuth2AuthenticationFailureHandler;
+import com.groceryshop.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +27,15 @@ public class SecurityConfig {
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
+
+    @Autowired
+    private CustomOAuth2UserService customOAuth2UserService;
+
+    @Autowired
+    private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
+    @Autowired
+    private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
@@ -54,11 +66,14 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // Cần session cho OAuth2 flow (stateless bị tắt tạm thời cho OAuth2)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
+                // Cho phép các OAuth2 endpoints
+                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                 .requestMatchers("/", "/index.html", "/static/**", "/assets/**",
                         "/*.js", "/*.css", "/*.ico", "/*.png", "/*.svg",
                         "/favicon.ico", "/manifest.json").permitAll()
@@ -66,6 +81,21 @@ public class SecurityConfig {
                         "/cart", "/checkout", "/orders", "/orders/**", "/profile", "/admin", "/admin/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
+            )
+            // Cấu hình OAuth2 Login
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/login")  // Dùng trang login của React (SpaController sẽ forward)
+                .authorizationEndpoint(endpoint ->
+                    endpoint.baseUri("/oauth2/authorize")
+                )
+                .redirectionEndpoint(endpoint ->
+                    endpoint.baseUri("/login/oauth2/code/*")
+                )
+                .userInfoEndpoint(userInfo ->
+                    userInfo.userService(customOAuth2UserService)
+                )
+                .successHandler(oAuth2AuthenticationSuccessHandler)
+                .failureHandler(oAuth2AuthenticationFailureHandler)
             );
 
         http.authenticationProvider(authenticationProvider());

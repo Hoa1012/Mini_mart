@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import api from '../../services/api'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { DollarSign, ShoppingBag, Users, Package, AlertTriangle, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import './AdminPages.css'
@@ -30,13 +30,54 @@ const Dashboard = () => {
     return <div className="loading-state">Đang tải số liệu thống kê quản trị...</div>
   }
 
-  // Chuẩn bị dữ liệu cho Recharts
-  const chartData = stats && stats.monthlyRevenue
-    ? Object.keys(stats.monthlyRevenue).map(key => ({
-        name: key,
-        'Doanh thu': stats.monthlyRevenue[key]
-      }))
-    : []
+  // Tạo danh sách 6 tháng gần nhất và điền dữ liệu thực
+  const buildChartData = () => {
+    const now = new Date()
+    const months = []
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      months.push(key)
+    }
+
+    const realMap = {}
+    if (stats?.monthlyRevenue) {
+      Object.keys(stats.monthlyRevenue).forEach(key => {
+        realMap[key] = stats.monthlyRevenue[key]
+      })
+    }
+
+    return months.map(month => ({
+      name: month,
+      'Doanh thu': realMap[month] || 0,
+      isReal: true
+    }))
+  }
+
+  const chartData = buildChartData()
+
+  // Custom tooltip hiển thị đẹp
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const isReal = payload[0]?.payload?.isReal
+      return (
+        <div style={{
+          background: 'rgba(255,255,255,0.97)',
+          border: '1px solid #e2e8f0',
+          borderRadius: '12px',
+          padding: '12px 16px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          fontSize: '13px'
+        }}>
+          <p style={{ fontWeight: 700, color: '#1e293b', marginBottom: 4 }}>{label}</p>
+          <p style={{ color: '#4CAF50', margin: 0 }}>
+            💰 {payload[0].value.toLocaleString()}đ
+          </p>
+        </div>
+      )
+    }
+    return null
+  }
 
   return (
     <div className="admin-dashboard-page">
@@ -87,23 +128,38 @@ const Dashboard = () => {
       <div className="dashboard-grid">
         {/* Cột 1: Biểu đồ doanh thu */}
         <div className="chart-card glass">
-          <h3>Doanh thu theo tháng (đơn hoàn thành)</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <h3 style={{ margin: 0 }}>Doanh thu theo tháng (đơn hoàn thành)</h3>
+          </div>
           <div className="chart-container">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={320}>
-                <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="name" stroke="#64748b" />
-                  <YAxis stroke="#64748b" tickFormatter={(val) => `${val / 1000000}M`} />
-                  <Tooltip formatter={(value) => [`${value.toLocaleString()}đ`, 'Doanh thu']} />
-                  <Area type="monotone" dataKey="Doanh thu" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
-                </AreaChart>
+                <BarChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#94a3b8"
+                    tick={{ fontSize: 12, fill: '#64748b', fontWeight: 500 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="#94a3b8"
+                    tick={{ fontSize: 11, fill: '#94a3b8' }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`}
+                  />
+                  <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(0,0,0,0.03)'}} />
+                  <Bar
+                    dataKey="Doanh thu"
+                    fill="#4CAF50"
+                    radius={[6, 6, 0, 0]}
+                    barSize={40}
+                    isAnimationActive={true}
+                    animationDuration={1000}
+                  />
+                </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="empty-chart">Chưa có dữ liệu doanh thu hàng tháng.</div>

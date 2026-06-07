@@ -26,6 +26,7 @@ public class SpaController {
         "/orders",
         "/orders/**",
         "/profile",
+        "/oauth2/callback",
         "/admin",
         "/admin/**"
     })

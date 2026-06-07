@@ -119,3 +119,96 @@
   font-size: 0.95rem;
   color: var(--gray-500);
 }
+
+/* ===========================
+   OAuth2 Social Login Styles
+   =========================== */
+.oauth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.75rem 0 1.25rem;
+}
+
+.oauth-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--gray-200);
+}
+
+.oauth-divider-text {
+  font-size: 0.85rem;
+  color: var(--gray-500);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.oauth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.oauth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.78rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.oauth-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.2s;
+}
+
+.oauth-btn:hover::after {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.oauth-btn:active {
+  transform: scale(0.98);
+}
+
+.oauth-btn-google {
+  background: #ffffff;
+  color: #3c4043;
+  border: 1.5px solid #dadce0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.oauth-btn-google:hover {
+  background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  border-color: #c0c4cc;
+}
+
+.oauth-btn-facebook {
+  background: #1877F2;
+  color: #ffffff;
+  border: 1.5px solid #1877F2;
+  box-shadow: 0 1px 3px rgba(24,119,242,0.3);
+}
+
+.oauth-btn-facebook:hover {
+  background: #166fe5;
+  box-shadow: 0 4px 12px rgba(24,119,242,0.4);
+}
+
+.oauth-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}

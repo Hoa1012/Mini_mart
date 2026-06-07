@@ -396,3 +396,282 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===========================
+   QR Payment Preview Hint
+   =========================== */
+.qr-preview-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+/* ===========================
+   QR Modal Overlay
+   =========================== */
+.qr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeInOverlay 0.2s ease;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.qr-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+  animation: slideUpModal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUpModal {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Modal Header */
+.qr-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #1a73e8, #0d47a1);
+}
+
+.qr-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.qr-close-btn {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.qr-close-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* Modal Body */
+.qr-modal-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* Amount Badge */
+.qr-amount-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border: 2px solid #ffb74d;
+  border-radius: 12px;
+  padding: 0.75rem 2rem;
+  width: 100%;
+  text-align: center;
+}
+
+.qr-amount-label {
+  font-size: 0.8rem;
+  color: #e65100;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.qr-amount-value {
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: #bf360c;
+  line-height: 1.2;
+}
+
+.qr-amount-value small {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+/* QR Image */
+.qr-image-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-image {
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  border-radius: 12px;
+  border: 3px solid #e3f2fd;
+  box-shadow: 0 4px 20px rgba(26,115,232,0.15);
+  object-fit: contain;
+}
+
+.qr-fallback {
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  border: 2px dashed #cbd5e1;
+  background: #f8fafc;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+/* Bank Info Table */
+.qr-bank-info {
+  width: 100%;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.qr-bank-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 0.5rem;
+}
+
+.qr-bank-row:last-child {
+  border-bottom: none;
+}
+
+.qr-bank-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 110px;
+}
+
+.qr-bank-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: right;
+}
+
+.qr-stk-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qr-stk {
+  font-size: 1rem;
+  letter-spacing: 1px;
+  color: #1a73e8;
+}
+
+.qr-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #e8f0fe;
+  border: 1px solid #1a73e8;
+  color: #1a73e8;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.qr-copy-btn:hover {
+  background: #1a73e8;
+  color: white;
+}
+
+.qr-note {
+  color: #7c3aed;
+  font-style: italic;
+}
+
+/* Instruction */
+.qr-instruction {
+  font-size: 0.82rem;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.5;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  width: 100%;
+}
+
+/* Modal Footer */
+.qr-modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+.qr-modal-footer .btn {
+  flex: 1;
+  padding: 0.75rem !important;
+  font-size: 0.9rem !important;
+}
+
+.qr-confirm-btn {
+  background: linear-gradient(135deg, #16a34a, #15803d) !important;
+  border-color: transparent !important;
+}
+
+.qr-confirm-btn:hover {
+  background: linear-gradient(135deg, #15803d, #166534) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22,163,74,0.35) !important;
+}

@@ -3,8 +3,25 @@ import { useNavigate } from 'react-router-dom'
 import { CartContext } from '../contexts/CartContext'
 import { AuthContext } from '../contexts/AuthContext'
 import api from '../services/api'
-import { MapPin, Plus, CheckCircle, Wallet, Tag } from 'lucide-react'
+import { MapPin, Plus, CheckCircle, Wallet, Tag, QrCode, X, Copy, Check } from 'lucide-react'
 import './Checkout.css'
+
+// ============================================================
+// ⚙️ CẤU HÌNH THANH TOÁN VIETQR - Sửa 3 dòng này
+// ============================================================
+const BANK_CONFIG = {
+  bankId: 'VCB',                          // Mã ngân hàng (VCB, TCB, MB, ICB...)
+  accountNo: '1234567890',                // Số tài khoản của shop
+  accountName: 'MINIMART SHOP',           // Tên chủ tài khoản (IN HOA)
+}
+// ============================================================
+
+const buildVietQRUrl = (amount, orderInfo) => {
+  const { bankId, accountNo, accountName } = BANK_CONFIG
+  const description = encodeURIComponent(orderInfo)
+  const name = encodeURIComponent(accountName)
+  return `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${description}&accountName=${name}`
+}
 
 const Checkout = () => {
   const { cart, cartSubtotal, clearCart } = useContext(CartContext)
@@ -38,11 +55,16 @@ const Checkout = () => {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // QR Modal
+  const [showQRModal, setShowQRModal] = useState(false)
+  const [qrOrderInfo, setQrOrderInfo] = useState('')
+  const [copiedSTK, setCopiedSTK] = useState(false)
+  const [qrConfirming, setQrConfirming] = useState(false)
+
   const fetchAddresses = async () => {
     try {
       const response = await api.get('/api/addresses')
       setAddresses(response.data)
-      // Chọn địa chỉ mặc định đầu tiên
       const defaultAddr = response.data.find(addr => addr.isDefault)
       if (defaultAddr) {
         setSelectedAddressId(defaultAddr.id)
@@ -67,64 +89,35 @@ const Checkout = () => {
     setError('')
     try {
       const response = await api.post('/api/addresses', {
-        receiverName,
-        receiverPhone,
-        province,
-        district,
-        ward,
-        detailAddress,
-        isDefault
+        receiverName, receiverPhone, province, district, ward, detailAddress, isDefault
       })
-      
       setAddresses(prev => [...prev, response.data])
       setSelectedAddressId(response.data.id)
       setShowAddForm(false)
-      
-      // Reset form
-      setReceiverName('')
-      setReceiverPhone('')
-      setProvince('')
-      setDistrict('')
-      setWard('')
-      setDetailAddress('')
-      setIsDefault(false)
+      setReceiverName(''); setReceiverPhone(''); setProvince('')
+      setDistrict(''); setWard(''); setDetailAddress(''); setIsDefault(false)
     } catch (err) {
-      setError(err.response?.data?.error || 'Không thể thêm địa chỉ mới. Vui lòng kiểm tra lại thông tin.')
+      setError(err.response?.data?.error || 'Không thể thêm địa chỉ mới.')
     }
   }
 
   const handleApplyCoupon = async (e) => {
     e.preventDefault()
-    setCouponError('')
-    setCouponSuccess('')
-    setDiscountAmount(0)
-    setAppliedCoupon('')
-
+    setCouponError(''); setCouponSuccess(''); setDiscountAmount(0); setAppliedCoupon('')
     if (!couponCode.trim()) return
-
     try {
-      const response = await api.post('/api/public/coupons/apply', {
-        code: couponCode,
-        amount: cartSubtotal
-      })
+      const response = await api.post('/api/public/coupons/apply', { code: couponCode, amount: cartSubtotal })
       setDiscountAmount(response.data.discountAmount)
       setAppliedCoupon(response.data.code)
-      setCouponSuccess(`Áp dụng mã giảm giá thành công! Bạn được giảm ${response.data.discountAmount.toLocaleString()}đ`)
+      setCouponSuccess(`Áp dụng thành công! Giảm ${response.data.discountAmount.toLocaleString()}đ`)
     } catch (err) {
       setCouponError(err.response?.data?.error || 'Mã giảm giá không hợp lệ')
     }
   }
 
-  const handlePlaceOrder = async () => {
-    setError('')
-    if (!selectedAddressId) {
-      setError('Vui lòng chọn địa chỉ giao hàng')
-      return
-    }
-
+  const submitOrder = async () => {
     const addr = addresses.find(a => a.id === selectedAddressId)
     const fullAddrString = `${addr.detailAddress}, ${addr.ward}, ${addr.district}, ${addr.province}`
-
     setLoading(true)
     try {
       await api.post('/api/orders', {
@@ -135,14 +128,43 @@ const Checkout = () => {
         couponCode: appliedCoupon || null,
         note
       })
-
       clearCart()
       navigate('/orders?success=true')
     } catch (err) {
-      setError(err.response?.data?.error || 'Đã xảy ra lỗi khi tạo đơn hàng. Vui lòng kiểm tra lại tồn kho sản phẩm.')
+      setError(err.response?.data?.error || 'Đã xảy ra lỗi khi tạo đơn hàng.')
+      setShowQRModal(false)
     } finally {
       setLoading(false)
+      setQrConfirming(false)
     }
+  }
+
+  const handlePlaceOrder = async () => {
+    setError('')
+    if (!selectedAddressId) {
+      setError('Vui lòng chọn địa chỉ giao hàng')
+      return
+    }
+
+    if (paymentMethod === 'BANK_TRANSFER') {
+      // Hiện modal QR trước
+      const orderRef = `MINIMART ${user?.username?.toUpperCase() || 'KH'} ${Date.now().toString().slice(-6)}`
+      setQrOrderInfo(orderRef)
+      setShowQRModal(true)
+    } else {
+      await submitOrder()
+    }
+  }
+
+  const handleQRConfirm = async () => {
+    setQrConfirming(true)
+    await submitOrder()
+  }
+
+  const handleCopySTK = () => {
+    navigator.clipboard.writeText(BANK_CONFIG.accountNo)
+    setCopiedSTK(true)
+    setTimeout(() => setCopiedSTK(false), 2000)
   }
 
   const finalTotal = cartSubtotal - discountAmount
@@ -154,7 +176,7 @@ const Checkout = () => {
       {error && <div className="checkout-general-error">{error}</div>}
 
       <div className="checkout-grid">
-        {/* Left Column: Addresses & Payment */}
+        {/* Left Column */}
         <div className="checkout-steps">
           {/* Bước 1: Địa chỉ giao hàng */}
           <div className="checkout-step-card glass">
@@ -241,31 +263,29 @@ const Checkout = () => {
             <h3><Wallet size={22} className="step-icon" /> 2. Phương thức thanh toán</h3>
             <div className="payment-options">
               <label className={`payment-option-card ${paymentMethod === 'COD' ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === 'COD'}
-                  onChange={() => setPaymentMethod('COD')}
-                />
+                <input type="radio" name="payment" checked={paymentMethod === 'COD'} onChange={() => setPaymentMethod('COD')} />
                 <div className="payment-desc">
-                  <strong>Thanh toán khi nhận hàng (COD)</strong>
+                  <strong>💵 Thanh toán khi nhận hàng (COD)</strong>
                   <p>Thanh toán bằng tiền mặt ngay khi nhân viên MiniMart giao hàng đến nhà.</p>
                 </div>
               </label>
 
               <label className={`payment-option-card ${paymentMethod === 'BANK_TRANSFER' ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === 'BANK_TRANSFER'}
-                  onChange={() => setPaymentMethod('BANK_TRANSFER')}
-                />
+                <input type="radio" name="payment" checked={paymentMethod === 'BANK_TRANSFER'} onChange={() => setPaymentMethod('BANK_TRANSFER')} />
                 <div className="payment-desc">
-                  <strong>Chuyển khoản Ngân hàng</strong>
-                  <p>Chuyển khoản trực tiếp tới số tài khoản của MiniMart. Đơn hàng sẽ được xác nhận khi tiền vào tài khoản.</p>
+                  <strong>🏦 Chuyển khoản ngân hàng (QR Code)</strong>
+                  <p>Quét mã QR VietQR để chuyển khoản trực tiếp. Đơn hàng xác nhận khi tiền về tài khoản.</p>
                 </div>
               </label>
             </div>
+
+            {/* Preview QR khi chọn chuyển khoản */}
+            {paymentMethod === 'BANK_TRANSFER' && (
+              <div className="qr-preview-hint">
+                <QrCode size={16} />
+                <span>Mã QR VietQR sẽ hiển thị sau khi bạn xác nhận đặt hàng</span>
+              </div>
+            )}
           </div>
 
           {/* Ghi chú đơn hàng */}
@@ -295,11 +315,7 @@ const Checkout = () => {
                 disabled={!!appliedCoupon}
               />
               {appliedCoupon ? (
-                <button
-                  type="button"
-                  onClick={() => { setAppliedCoupon(''); setDiscountAmount(0); setCouponSuccess(''); setCouponCode(''); }}
-                  className="btn btn-outline remove-coupon-btn"
-                >
+                <button type="button" onClick={() => { setAppliedCoupon(''); setDiscountAmount(0); setCouponSuccess(''); setCouponCode('') }} className="btn btn-outline remove-coupon-btn">
                   Xóa
                 </button>
               ) : (
@@ -354,6 +370,91 @@ const Checkout = () => {
           </div>
         </div>
       </div>
+
+      {/* ====== QR PAYMENT MODAL ====== */}
+      {showQRModal && (
+        <div className="qr-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowQRModal(false)}>
+          <div className="qr-modal">
+            {/* Header */}
+            <div className="qr-modal-header">
+              <div className="qr-modal-title">
+                <QrCode size={22} />
+                <span>Thanh toán chuyển khoản</span>
+              </div>
+              <button className="qr-close-btn" onClick={() => setShowQRModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* QR Body */}
+            <div className="qr-modal-body">
+              {/* Amount badge */}
+              <div className="qr-amount-badge">
+                <span className="qr-amount-label">Số tiền cần chuyển</span>
+                <span className="qr-amount-value">{finalTotal.toLocaleString()}<small>đ</small></span>
+              </div>
+
+              {/* QR Image */}
+              <div className="qr-image-wrapper">
+                <img
+                  src={buildVietQRUrl(finalTotal, qrOrderInfo)}
+                  alt="QR thanh toán VietQR"
+                  className="qr-image"
+                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+                />
+                <div className="qr-fallback" style={{ display: 'none' }}>
+                  <QrCode size={60} />
+                  <p>Không tải được QR. Vui lòng chuyển khoản thủ công.</p>
+                </div>
+              </div>
+
+              {/* Bank Info */}
+              <div className="qr-bank-info">
+                <div className="qr-bank-row">
+                  <span className="qr-bank-label">Ngân hàng</span>
+                  <span className="qr-bank-value">Vietcombank ({BANK_CONFIG.bankId})</span>
+                </div>
+                <div className="qr-bank-row">
+                  <span className="qr-bank-label">Số tài khoản</span>
+                  <div className="qr-stk-row">
+                    <span className="qr-bank-value qr-stk">{BANK_CONFIG.accountNo}</span>
+                    <button className="qr-copy-btn" onClick={handleCopySTK}>
+                      {copiedSTK ? <Check size={14} /> : <Copy size={14} />}
+                      {copiedSTK ? 'Đã chép' : 'Sao chép'}
+                    </button>
+                  </div>
+                </div>
+                <div className="qr-bank-row">
+                  <span className="qr-bank-label">Chủ tài khoản</span>
+                  <span className="qr-bank-value">{BANK_CONFIG.accountName}</span>
+                </div>
+                <div className="qr-bank-row">
+                  <span className="qr-bank-label">Nội dung CK</span>
+                  <span className="qr-bank-value qr-note">{qrOrderInfo}</span>
+                </div>
+              </div>
+
+              <p className="qr-instruction">
+                📱 Mở ứng dụng ngân hàng → Quét mã QR hoặc chuyển khoản thủ công với thông tin trên
+              </p>
+            </div>
+
+            {/* Footer actions */}
+            <div className="qr-modal-footer">
+              <button className="btn btn-outline" onClick={() => setShowQRModal(false)}>
+                Quay lại
+              </button>
+              <button
+                className="btn btn-primary qr-confirm-btn"
+                onClick={handleQRConfirm}
+                disabled={qrConfirming}
+              >
+                {qrConfirming ? 'Đang xử lý...' : '✅ Tôi đã chuyển khoản xong'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -26,13 +26,23 @@ public class JwtTokenProvider {
 
     public String generateToken(Authentication authentication, boolean rememberMe) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return buildToken(userPrincipal.getId(), rememberMe ? jwtRememberMeExpirationInMs : jwtExpirationInMs);
+    }
+
+    /**
+     * Tạo JWT từ userId (dùng cho OAuth2 success handler)
+     */
+    public String generateTokenFromUserId(Long userId) {
+        return buildToken(userId, jwtExpirationInMs);
+    }
+
+    private String buildToken(Long userId, long expiryMs) {
         Date now = new Date();
-        long expiry = rememberMe ? jwtRememberMeExpirationInMs : jwtExpirationInMs;
-        Date expiryDate = new Date(now.getTime() + expiry);
+        Date expiryDate = new Date(now.getTime() + expiryMs);
 
         return Jwts.builder()
-                .setSubject(Long.toString(userPrincipal.getId()))
-                .setIssuedAt(new Date())
+                .setSubject(Long.toString(userId))
+                .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();

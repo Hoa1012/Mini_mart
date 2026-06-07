@@ -37,6 +37,28 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  /**
+   * Đăng nhập bằng token từ OAuth2 callback (Google/Facebook)
+   */
+  const loginWithToken = (tokenData) => {
+    const { token: accessToken, id, username, email, role, avatarUrl } = tokenData
+    const userData = { 
+      id: parseInt(id), 
+      username, 
+      email, 
+      role,
+      avatarUrl: avatarUrl || null
+    }
+    
+    setToken(accessToken)
+    setUser(userData)
+    
+    localStorage.setItem('token', accessToken)
+    localStorage.setItem('user', JSON.stringify(userData))
+    
+    return userData
+  }
+
   const register = async (username, email, password, fullName, phone) => {
     try {
       await api.post('/api/auth/register', { username, email, password, fullName, phone })
@@ -77,7 +99,7 @@ export const AuthProvider = ({ children }) => {
   const isAdmin = user?.role === 'ROLE_ADMIN'
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, isAdmin, loading, login, register, logout, forgotPassword, updateUser }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, isAdmin, loading, login, loginWithToken, register, logout, forgotPassword, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

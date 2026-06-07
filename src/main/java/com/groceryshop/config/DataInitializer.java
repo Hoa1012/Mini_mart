@@ -100,31 +100,11 @@ public class DataInitializer implements CommandLineRunner {
         Brand vinamilk = brandRepository.findByName("Vinamilk").orElse(null);
 
         if (productRepository.count() == 0) {
-            Product xalach = Product.builder()
-                    .name("Xà lách thủy canh sạch")
-                    .description("Xà lách tươi ngon được trồng theo phương pháp thủy canh, sạch sẽ an toàn.")
-                    .price(BigDecimal.valueOf(25000))
-                    .salePrice(BigDecimal.valueOf(20000))
-                    .category(rauCu)
-                    .brand(farm)
-                    .mainImage("/uploads/product_xalach.png")
-                    .isActive(true)
-                    .build();
-            Product savedXalach = productRepository.save(xalach);
-            inventoryRepository.save(Inventory.builder().product(savedXalach).currentStock(4).minimumStock(5).location("Kệ A1 - Rau củ").build());
+            Product xalach = productRepository.save(Product.builder().name("Xà lách thủy canh sạch").description("Xà lách tươi ngon được trồng theo phương pháp thủy canh, sạch sẽ an toàn.").price(BigDecimal.valueOf(25000)).salePrice(BigDecimal.valueOf(20000)).category(rauCu).brand(farm).mainImage("/uploads/product_xalach.png").isActive(true).build());
+            inventoryRepository.save(Inventory.builder().product(xalach).currentStock(4).minimumStock(5).location("Kệ A1 - Rau củ").build());
 
-            Product suaVinamilk = Product.builder()
-                    .name("Sữa tươi Vinamilk ít đường 1L")
-                    .description("Sữa tươi tiệt trùng Vinamilk bổ sung vitamin AD3 giúp xương chắc khỏe.")
-                    .price(BigDecimal.valueOf(38000))
-                    .salePrice(BigDecimal.valueOf(36000))
-                    .category(sua)
-                    .brand(vinamilk)
-                    .mainImage("/uploads/product_suavinamilk.png")
-                    .isActive(true)
-                    .build();
-            Product savedSua = productRepository.save(suaVinamilk);
-            inventoryRepository.save(Inventory.builder().product(savedSua).currentStock(25).minimumStock(5).location("Tủ lạnh 1 - Sữa").build());
+            Product suaVinamilk = productRepository.save(Product.builder().name("Sữa tươi Vinamilk ít đường 1L").description("Sữa tươi tiệt trùng Vinamilk bổ sung vitamin AD3 giúp xương chắc khỏe.").price(BigDecimal.valueOf(38000)).salePrice(BigDecimal.valueOf(36000)).category(sua).brand(vinamilk).mainImage("/uploads/product_suavinamilk.png").isActive(true).build());
+            inventoryRepository.save(Inventory.builder().product(suaVinamilk).currentStock(25).minimumStock(5).location("Tủ lạnh 1 - Sữa").build());
         }
 
         if (couponRepository.count() == 0) {
