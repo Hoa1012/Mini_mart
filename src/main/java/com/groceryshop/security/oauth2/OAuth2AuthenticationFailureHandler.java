@@ -24,14 +24,15 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
-        // Lấy thông báo lỗi ngắn gọn (không lấy full SQL error)
+        // Lấy thông báo lỗi ngắn gọn
         String message = exception.getMessage();
-        if (message != null && message.length() > 100) {
-            message = "Đăng nhập thất bại. Vui lòng thử lại.";
+        if (message == null || message.length() > 100) {
+            message = "Đăng nhập Google thất bại. Vui lòng thử lại.";
         }
 
-        String loginUrl = authorizedRedirectUri.replace("/oauth2/callback", "/login")
-                + "?error=" + URLEncoder.encode(message != null ? message : "Đăng nhập thất bại", StandardCharsets.UTF_8);
+        // Redirect về React frontend (port 5173), không phải backend (8080)
+        String loginUrl = "http://localhost:5173/login"
+                + "?error=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
 
         getRedirectStrategy().sendRedirect(request, response, loginUrl);
     }

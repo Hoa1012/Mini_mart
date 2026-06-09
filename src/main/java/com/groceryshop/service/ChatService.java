@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 @Service
 public class ChatService {
 
-    @Value("${gemini.api.key:}")
-    private String geminiApiKey;
+    @Value("${gemini.api.key.base64:}")
+    private String geminiApiKeyBase64;
 
     @Autowired
     private ProductRepository productRepository;
@@ -25,8 +25,41 @@ public class ChatService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String getChatResponse(String userMessage) {
-        if (geminiApiKey == null || geminiApiKey.isEmpty() || geminiApiKey.equals("YOUR_GEMINI_API_KEY")) {
-            return "Xin lỗi, tính năng Trợ lý AI chưa được kích hoạt. Quản trị viên cần cấu hình Gemini API Key.";
+        String geminiApiKey = "";
+        try {
+            if (geminiApiKeyBase64 != null && !geminiApiKeyBase64.isEmpty()) {
+                geminiApiKey = new String(java.util.Base64.getDecoder().decode(geminiApiKeyBase64.trim()));
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi giải mã API Key: " + e.getMessage());
+        }
+
+        if (geminiApiKey.isEmpty() || geminiApiKey.equals("YOUR_GEMINI_API_KEY")) {
+            // Fallback: Simple keyword matching AI when API key is missing
+            String lowerMsg = userMessage.toLowerCase();
+            List<Product> products = productRepository.findAll();
+            
+            if (lowerMsg.contains("rẻ nhất") || lowerMsg.contains("giá thấp nhất")) {
+                Product cheapest = products.stream()
+                        .filter(p -> p.getIsActive() != null && p.getIsActive())
+                        .min((p1, p2) -> {
+                            java.math.BigDecimal p1Price = p1.getSalePrice() != null ? p1.getSalePrice() : p1.getPrice();
+                            java.math.BigDecimal p2Price = p2.getSalePrice() != null ? p2.getSalePrice() : p2.getPrice();
+                            return p1Price.compareTo(p2Price);
+                        }).orElse(null);
+                if (cheapest != null) {
+                    java.math.BigDecimal price = cheapest.getSalePrice() != null ? cheapest.getSalePrice() : cheapest.getPrice();
+                    return "Dạ, sản phẩm rẻ nhất hiện tại là **" + cheapest.getName() + "** với giá chỉ **" + String.format("%,d", price.longValue()) + "đ** ạ!";
+                }
+            } else if (lowerMsg.contains("chào")) {
+                return "Dạ em chào anh/chị! Em là Trợ lý ảo của MiniMart. Anh/chị cần tìm sản phẩm gì ạ?";
+            } else if (lowerMsg.contains("rau") || lowerMsg.contains("củ") || lowerMsg.contains("quả")) {
+                return "Dạ bên em đang có Cà chua VietGAP và Xà lách thủy canh cực kỳ tươi ngon, giao nhanh trong 2 giờ ạ. Anh/chị xem thử nhé!";
+            } else if (lowerMsg.contains("khuyến mãi") || lowerMsg.contains("sale") || lowerMsg.contains("giảm giá")) {
+                return "Dạ hiện tại bên em đang có mã WELCOME10 giảm 10% và nhiều sản phẩm đang sale. Anh/chị vào mục 'Siêu ưu đãi' ở trang chủ để xem nhé!";
+            }
+            
+            return "Dạ, hiện tại tính năng AI thông minh đang tạm bảo trì do chưa cấu hình API Key. Tuy nhiên em vẫn có thể trả lời các câu hỏi đơn giản (ví dụ: sản phẩm nào rẻ nhất, có khuyến mãi gì không...).";
         }
 
         // Lấy thông tin sản phẩm từ DB làm ngữ cảnh
@@ -45,7 +78,7 @@ public class ChatService {
                 + "4. Trả lời ngắn gọn, súc tích (dưới 150 chữ).\n\n"
                 + "Câu hỏi của khách: " + userMessage;
 
-        String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + geminiApiKey;
+        String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + geminiApiKey;
 
         try {
             // Build the JSON request body matching Gemini API spec

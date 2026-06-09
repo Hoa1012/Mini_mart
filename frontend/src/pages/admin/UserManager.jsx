@@ -170,11 +170,11 @@ const UserManager = () => {
                       borderRadius: '6px',
                       fontSize: '0.8rem',
                       fontWeight: '600',
-                      background: user.roleName === 'ROLE_ADMIN' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                      color: user.roleName === 'ROLE_ADMIN' ? 'var(--admin-danger)' : 'var(--admin-primary)'
+                      background: user.role === 'ROLE_ADMIN' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                      color: user.role === 'ROLE_ADMIN' ? 'var(--admin-danger)' : 'var(--admin-primary)'
                     }}>
-                      {user.roleName === 'ROLE_ADMIN' ? <Shield size={12} /> : <User size={12} />}
-                      {user.roleName === 'ROLE_ADMIN' ? 'Quản trị viên' : 'Khách hàng'}
+                      {user.role === 'ROLE_ADMIN' ? <Shield size={12} /> : <User size={12} />}
+                      {user.role === 'ROLE_ADMIN' ? 'Quản trị viên' : 'Khách hàng'}
                     </span>
                   </td>
                   <td>
@@ -188,7 +188,7 @@ const UserManager = () => {
                     </span>
                   </td>
                   <td>
-                    {user.roleName === 'ROLE_ADMIN' ? (
+                    {user.role === 'ROLE_ADMIN' ? (
                       <span style={{ fontSize: '0.8rem', color: 'var(--admin-text-secondary)', fontStyle: 'italic' }}>Không cho phép khóa</span>
                     ) : (
                       <button 

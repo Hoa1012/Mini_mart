@@ -25,6 +25,7 @@ public class InventoryController {
         return ResponseEntity.ok(inventoryService.getLowStockWarnings());
     }
 
+    // Ghi đè tuyệt đối
     @PutMapping("/{id}")
     public ResponseEntity<Inventory> updateStock(
             @PathVariable Long id,
@@ -33,4 +34,15 @@ public class InventoryController {
         String location = payload.get("location") != null ? payload.get("location").toString() : null;
         return ResponseEntity.ok(inventoryService.updateStock(id, currentStock, location));
     }
+
+    // Nhập thêm hàng (cộng dồn vào tồn kho hiện tại)
+    @PostMapping("/{id}/add-stock")
+    public ResponseEntity<Inventory> addStock(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
+        Integer quantity = payload.get("quantity") != null ? Integer.parseInt(payload.get("quantity").toString()) : null;
+        String location = payload.get("location") != null ? payload.get("location").toString() : null;
+        return ResponseEntity.ok(inventoryService.addStock(id, quantity, location));
+    }
 }
+

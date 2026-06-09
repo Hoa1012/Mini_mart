@@ -36,7 +36,7 @@ public class ProductService {
     private ProductImageRepository productImageRepository;
 
     public List<ProductDTO> getAllProductsAdmin() {
-        return productRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
+        return productRepository.findAll(Sort.by(Sort.Direction.ASC, "id")).stream()
                 .map(EntityMapper::toProductDTO)
                 .collect(Collectors.toList());
     }

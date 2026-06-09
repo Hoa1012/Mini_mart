@@ -33,7 +33,9 @@ const Profile = () => {
         const data = response.data
         setProfileData(data)
         setFullNameInput(data.fullName || '')
-        setPhoneInput(data.phone || '')
+        // Chỉ dùng phone nếu nó là số điện thoại thật (không chứa @)
+        const validPhone = data.phone && !data.phone.includes('@') ? data.phone : ''
+        setPhoneInput(validPhone)
       } catch (err) {
         console.error('Không thể lấy thông tin cá nhân', err)
         setMessage({ type: 'error', text: 'Không thể tải thông tin cá nhân. Vui lòng thử lại sau.' })
@@ -89,7 +91,9 @@ const Profile = () => {
       // Update UI state
       setProfileData(updatedUser)
       setFullNameInput(updatedUser.fullName || '')
-      setPhoneInput(updatedUser.phone || '')
+      // Đảm bảo không hiển thị email vào phone
+      const validPhone = updatedUser.phone && !updatedUser.phone.includes('@') ? updatedUser.phone : ''
+      setPhoneInput(validPhone)
       
       // Clear password fields
       setNewPassword('')
@@ -174,7 +178,10 @@ const Profile = () => {
               <label>Số điện thoại</label>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="text"
+                  type="tel"
+                  name="phone"
+                  id="phone"
+                  autoComplete="tel"
                   placeholder="Nhập số điện thoại..."
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
@@ -201,9 +208,11 @@ const Profile = () => {
 
           <div className="form-grid-2">
             <div className="form-group">
-              <label>Mật khẩu mới (Bỏ trống nếu không đổi)</label>
+              <label>Mật khẩu mới</label>
               <input
                 type="password"
+                name="newPassword"
+                autoComplete="new-password"
                 placeholder="Tối thiểu 8 ký tự..."
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -214,6 +223,8 @@ const Profile = () => {
               <label>Xác nhận mật khẩu mới</label>
               <input
                 type="password"
+                name="confirmPassword"
+                autoComplete="new-password"
                 placeholder="Nhập lại mật khẩu mới..."
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

@@ -83,7 +83,12 @@ public class UserService {
     public UserDTO getUserProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với id: " + userId));
-        return EntityMapper.toUserDTO(user);
+        UserDTO dto = EntityMapper.toUserDTO(user);
+        // Tự động làm sạch phone nếu bị lưu nhầm là email
+        if (dto.getPhone() != null && dto.getPhone().contains("@")) {
+            dto.setPhone(null);
+        }
+        return dto;
     }
 
     @Transactional
@@ -95,7 +100,15 @@ public class UserService {
             user.setFullName(request.getFullName());
         }
         if (request.getPhone() != null) {
-            user.setPhone(request.getPhone());
+            String phone = request.getPhone().trim();
+            // Không cho phép lưu email vào trường phone
+            if (!phone.contains("@")) {
+                user.setPhone(phone.isEmpty() ? null : phone);
+            }
+        }
+        // Tự động fix dữ liệu phone sai (email bị lưu nhầm vào phone)
+        if (user.getPhone() != null && user.getPhone().contains("@")) {
+            user.setPhone(null);
         }
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
             user.setPassword(passwordEncoder.encode(request.getPassword().trim()));

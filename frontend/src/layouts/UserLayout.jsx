@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate, Navigate } from 'react-router-dom'
 import { AuthContext } from '../contexts/AuthContext'
 import { CartContext } from '../contexts/CartContext'
 import { ShoppingCart, User as UserIcon, LogOut, Search, Store } from 'lucide-react'
+import ChatBot from '../components/ChatBot'
 import './Layouts.css'
 
 const UserLayout = () => {
@@ -102,6 +103,7 @@ const UserLayout = () => {
           <p>&copy; 2026 MiniMart Supermarket. All rights reserved.</p>
         </div>
       </footer>
+      <ChatBot />
     </div>
   )
 }

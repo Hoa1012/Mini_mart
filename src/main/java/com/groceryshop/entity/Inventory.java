@@ -2,11 +2,14 @@ package com.groceryshop.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.*;
+import org.hibernate.annotations.Check;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "inventory")
+@Check(constraints = "current_stock >= 0")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,6 +24,7 @@ public class Inventory {
     @JoinColumn(name = "product_id", unique = true)
     private Product product;
 
+    @Min(value = 0, message = "Tồn kho không được âm")
     @Column(name = "current_stock", nullable = false)
     private Integer currentStock;
 

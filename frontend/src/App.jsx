@@ -110,7 +110,6 @@ function App() {
             {/* Fallback Catch-All Route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-          <ChatBot />
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>

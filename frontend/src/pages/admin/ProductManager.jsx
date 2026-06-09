@@ -303,7 +303,7 @@ const ProductManager = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map(prod => (
+            {[...products].sort((a, b) => a.id - b.id).map(prod => (
               <tr key={prod.id}>
                 <td>{prod.id}</td>
                 <td>

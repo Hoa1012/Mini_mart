@@ -65,9 +65,22 @@ const Home = () => {
     return <div className="loading-state">Đang tải trang chủ MiniMart...</div>
   }
 
+  // Sản phẩm khuyến mãi (có salePrice)
   const saleProducts = products.filter(p => p.salePrice != null).slice(0, 4)
-  const newProducts = [...products].sort((a, b) => b.id - a.id).slice(0, 4)
-  const featuredProducts = products.slice(0, 4)
+  const saleIds = new Set(saleProducts.map(p => p.id))
+
+  // Sản phẩm mới nhất (id cao nhất, loại bỏ những sản phẩm đã hiện ở saleProducts)
+  const newProducts = [...products]
+    .sort((a, b) => b.id - a.id)
+    .filter(p => !saleIds.has(p.id))
+    .slice(0, 4)
+  const newIds = new Set(newProducts.map(p => p.id))
+
+  // Sản phẩm nổi bật (loại bỏ đã hiện ở 2 section trên, random hoặc lấy phần còn lại)
+  const featuredProducts = products
+    .filter(p => !saleIds.has(p.id) && !newIds.has(p.id))
+    .slice(0, 4)
+
 
   return (
     <div className="home-page">
@@ -164,6 +177,7 @@ const Home = () => {
         </div>
       </section>
 
+      {featuredProducts.length > 0 && (
       <section className="products-section">
         <div className="section-header">
           <h2 className="section-title">Sản phẩm nổi bật</h2>
@@ -182,6 +196,8 @@ const Home = () => {
           ))}
         </div>
       </section>
+      )}
+
 
       {selectedProduct && (
         <ProductModal
