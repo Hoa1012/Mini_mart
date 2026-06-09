@@ -2,6 +2,8 @@ package com.groceryshop.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,6 +30,7 @@ public class Review {
     private Integer rating;
 
     @Column(length = 1000)
+    @Nationalized
     private String comment;
 
     @Column(name = "is_approved", nullable = false)

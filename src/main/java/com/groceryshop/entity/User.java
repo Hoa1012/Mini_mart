@@ -2,6 +2,8 @@ package com.groceryshop.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,6 +29,7 @@ public class User {
     private String password;
 
     @Column(name = "full_name", length = 100)
+    @Nationalized
     private String fullName;
 
     @Column(length = 20)

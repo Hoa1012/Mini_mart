@@ -2,6 +2,8 @@ package com.groceryshop.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,6 +19,7 @@ public class Category {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 100)
+    @Nationalized
     private String name;
 
     @Column(length = 500)

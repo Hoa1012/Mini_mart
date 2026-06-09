@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.Nationalized;
 
 @Entity
 @Table(name = "products")
@@ -21,9 +22,11 @@ public class Product {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 255)
+    @Nationalized
     private String name;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Nationalized
     private String description;
 
     @Column(nullable = false, precision = 18, scale = 2)
