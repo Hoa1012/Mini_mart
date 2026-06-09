@@ -3,6 +3,8 @@ package com.groceryshop.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,6 +30,7 @@ public class Inventory {
     private Integer minimumStock;
 
     @Column(length = 100)
+    @Nationalized
     private String location;
 
     @Column(name = "last_updated")

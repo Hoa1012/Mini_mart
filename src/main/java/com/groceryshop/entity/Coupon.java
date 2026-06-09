@@ -2,6 +2,8 @@ package com.groceryshop.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Nationalized;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -21,6 +23,7 @@ public class Coupon {
     private String code;
 
     @Column(length = 255)
+    @Nationalized
     private String description;
 
     @Column(name = "discount_type", nullable = false, length = 20)
