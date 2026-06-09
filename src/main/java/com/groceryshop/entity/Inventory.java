@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
 import org.hibernate.annotations.Check;
+import org.hibernate.annotations.Nationalized;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,6 +33,7 @@ public class Inventory {
     private Integer minimumStock;
 
     @Column(length = 100)
+    @Nationalized
     private String location;
 
     @Column(name = "last_updated")
